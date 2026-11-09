@@ -1,0 +1,24 @@
+# Event har necha daqiqada boshlanadi
+interval-minutes: 30
+# Event necha daqiqa davom etadi
+duration-minutes: 10
+# Nechta sandiq yashiriladi
+chest-count: 25
+# Sandiqlar spawndan necha blok radiusda joylashadi (world border = radius*2+40)
+radius: 120
+# Maxluq (Husk) joni
+monster-health: 200
+# Event tugagach o'yinchilarni chiqarish buyrug'i (masalan: spawn). Bo'sh bo'lsa asosiy world spawniga teleport qiladi
+exit-command: ""
+# Lut: MATERIAL:min:max:vazn  (vazn qancha katta bo'lsa shuncha ko'p tushadi)
+loot:
+  - "COOKED_BEEF:2:6:20"
+  - "BREAD:2:8:20"
+  - "IRON_INGOT:1:5:15"
+  - "GOLD_INGOT:1:4:12"
+  - "GOLDEN_APPLE:1:2:8"
+  - "ENDER_PEARL:1:3:8"
+  - "DIAMOND:1:3:5"
+  - "EXPERIENCE_BOTTLE:2:8:8"
+  - "ENCHANTED_GOLDEN_APPLE:1:1:1"
+  - "NETHERITE_INGOT:1:1:1"

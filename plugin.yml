@@ -1,0 +1,14 @@
+name: BackroomsEvent
+version: 1.0
+main: uz.shoxcraft.backrooms.BackroomsPlugin
+api-version: '1.21'
+description: Backrooms eventi (har 30 daqiqada)
+commands:
+  backrooms:
+    description: Backrooms eventi
+    usage: /backrooms <join|start|stop|tp>
+    aliases: [br]
+permissions:
+  backrooms.admin:
+    description: Eventni boshqarish va istalgan vaqt kirish
+    default: op
