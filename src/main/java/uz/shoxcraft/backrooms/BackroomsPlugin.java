@@ -20,6 +20,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.block.Action;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.generator.ChunkGenerator;
@@ -31,6 +33,8 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.List;
 import java.util.Random;
 
@@ -48,6 +52,7 @@ public class BackroomsPlugin extends JavaPlugin implements Listener {
     private Husk monster;
     private final List<Location> chests = new ArrayList<>();
     private final List<Loot> loot = new ArrayList<>();
+    private final Map<Location, String> kitChests = new HashMap<>();
     private final Random rnd = new Random();
 
     private record Loot(Material mat, int min, int max, int weight) {}
@@ -56,6 +61,11 @@ public class BackroomsPlugin extends JavaPlugin implements Listener {
     @Override
     public void onEnable() {
         saveDefaultConfig();
+        getConfig().addDefault("kit-chance", 35);
+        getConfig().addDefault("kit-command", "kit %kit% %player%");
+        getConfig().addDefault("kits", List.of("general:40", "elite:30", "imperator:20", "titan:10"));
+        getConfig().options().copyDefaults(true);
+        saveConfig();
         loadLoot();
 
         int radius = getConfig().getInt("radius", 120);
@@ -133,6 +143,8 @@ public class BackroomsPlugin extends JavaPlugin implements Listener {
                     stopEvent();
                     return;
                 }
+                bar.setVisible(true);
+                for (Player pl : Bukkit.getOnlinePlayers()) bar.addPlayer(pl);
                 bar.setTitle("§c§lBACKROOMS EVENT §8| §e/warp backrooms §8| §fTugashiga: §a" + fmt(left));
                 bar.setProgress(Math.max(0.0, Math.min(1.0, (double) left / durationSec)));
             }
@@ -148,6 +160,7 @@ public class BackroomsPlugin extends JavaPlugin implements Listener {
         }
         for (Location l : chests) l.getBlock().setType(Material.AIR);
         chests.clear();
+        kitChests.clear();
         if (monster != null && !monster.isDead()) monster.remove();
         monster = null;
 
@@ -200,10 +213,53 @@ public class BackroomsPlugin extends JavaPlugin implements Listener {
             if (l == null) continue;
             Block b = l.getBlock();
             b.setType(Material.CHEST);
-            fillChest((Chest) b.getState());
+            String kit = null;
+            if (rnd.nextInt(100) < getConfig().getInt("kit-chance", 35)) kit = pickKit();
+            if (kit != null) kitChests.put(l, kit);
+            else fillChest((Chest) b.getState());
             chests.add(l);
         }
         getLogger().info(chests.size() + " ta sandiq joylashtirildi.");
+    }
+
+    private String pickKit() {
+        List<String> kits = getConfig().getStringList("kits");
+        int total = 0;
+        for (String k : kits) total += kitWeight(k);
+        if (total <= 0) return null;
+        int r = rnd.nextInt(total);
+        for (String k : kits) {
+            r -= kitWeight(k);
+            if (r < 0) return k.split(":")[0].trim();
+        }
+        return null;
+    }
+
+    private int kitWeight(String entry) {
+        try {
+            String[] p = entry.split(":");
+            return p.length > 1 ? Integer.parseInt(p[1].trim()) : 1;
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
+    @EventHandler
+    public void onChestOpen(PlayerInteractEvent e) {
+        if (e.getAction() != Action.RIGHT_CLICK_BLOCK || e.getClickedBlock() == null) return;
+        Block b = e.getClickedBlock();
+        if (!b.getWorld().equals(world)) return;
+        String kit = kitChests.remove(b.getLocation());
+        if (kit == null) return;
+        e.setCancelled(true);
+        b.setType(Material.AIR);
+        chests.remove(b.getLocation());
+        Player p = e.getPlayer();
+        String cmd = getConfig().getString("kit-command", "kit %kit% %player%")
+                .replace("%kit%", kit).replace("%player%", p.getName());
+        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd);
+        world.playSound(b.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1f, 1f);
+        Bukkit.broadcastMessage("§6" + p.getName() + " §7Backrooms sandig'idan §e§l" + kit.toUpperCase() + " §7kit topdi!");
     }
 
     private void fillChest(Chest chest) {
