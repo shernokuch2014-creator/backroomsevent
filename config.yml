@@ -7,7 +7,7 @@ chest-count: 25
 # Sandiqlar spawndan necha blok radiusda joylashadi (world border = radius*2+40)
 radius: 120
 # Maxluq (Husk) joni
-monster-health: 200
+monster-health: 2000
 # Event tugagach o'yinchilarni chiqarish buyrug'i (masalan: spawn). Bo'sh bo'lsa asosiy world spawniga teleport qiladi
 exit-command: ""
 # Lut: MATERIAL:min:max:vazn  (vazn qancha katta bo'lsa shuncha ko'p tushadi)
